@@ -1,10 +1,11 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 export default function Home() {
   const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data } = useQuery<
+  const { data: rawData } = useQuery<
     {
       urlMatch: string;
       statusCode: number;
@@ -13,6 +14,10 @@ export default function Home() {
       enabled: "true" | "false";
     }[]
   >("node-list", () => fetch("/api/list").then((res) => res.json()));
+
+  const data = (rawData ?? [])?.filter((data) =>
+    data.urlMatch.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const add = useMutation<
     { status: "ok" },
@@ -66,6 +71,14 @@ export default function Home() {
 
   return (
     <div className="max-w-[1200px] my-6 mx-auto">
+      <div className="flex flex-1">
+        <input
+          name="search"
+          className="border-black border flex-1 font-normal px-2 py-1"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       {(data ?? []).map((node) => (
         <Fragment key={node.urlMatch}>
           <dl className="grid grid-cols-2">
